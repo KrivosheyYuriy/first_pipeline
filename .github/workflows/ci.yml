@@ -1,0 +1,32 @@
+name: Java Maven CI/CD (Linter & Tests)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 21 
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    # Запуск сборки, линтинга и тестов одной командой.
+    # mvn verify выполняет: compile, test, и все плагины, привязанные к фазам validate, test, package, integration-test.
+    # Поскольку мы привязали Spotless к validate, а PMD/Spotbugs к test, 
+    # команда 'verify' покроет все наши требования.
+    - name: Full Build, Linting, and Testing
+      # Мы используем 'verify' вместо 'package -DskipTests', чтобы запустить все проверки.
+      run: mvn verify 
+      
+    # Если любой из плагинов (Spotless, PMD, SpotBugs) или тесты 
+    # завершатся с ошибкой, этот Job упадет, и GitHub заблокирует PR.
